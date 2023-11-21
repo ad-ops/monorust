@@ -1,22 +1,11 @@
+use anyhow::Result;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str;
-use anyhow::Result;
 
-/// - Sanity check
-/// - git clone --filter=blob:none --no-checkout https://github.com/ad-ops/monorust
-/// - cd monorust
-/// - git sparse-checkout init --cone
-/// - git sparse-checkout set monorepo-example/module1
-pub fn checkout(target_dir: &PathBuf, module_name: &str) -> Result<String> {
+pub fn checkout(target_dir: &PathBuf, module_name: &str, dry_run: bool) -> Result<String> {
     let git_org = "https://github.com/ad-ops";
     let repo = "monorust";
-    if !target_dir.exists() {
-        return Ok(format!("target dir ({target_dir:?} does not exist!)"));
-    } 
-    if target_dir.join(repo).exists() {
-        return Ok(format!("already exists dir ({repo})!"));
-    }
 
     let args = vec![
         format!("git clone --filter=blob:none --no-checkout {git_org}/{repo}"),
@@ -27,16 +16,23 @@ pub fn checkout(target_dir: &PathBuf, module_name: &str) -> Result<String> {
     let clone_arg = args.join(" && ");
     println!("{clone_arg}");
 
-    let output = Command::new("sh")
-        .current_dir(target_dir)
-        .arg("-c")
-        .arg(clone_arg)
-        .output()?;
-    
+    let mut command = Command::new("sh");
+    let command = command.current_dir(target_dir).arg("-c").arg(clone_arg);
 
-    let hello = output.stdout;
-    let hello = str::from_utf8(&hello)?
-        .to_string();
-    Ok(hello)
+    let text = if dry_run {
+        format!("cd {:?}\n{}", target_dir, &args.join("\n"))
+    } else {
+        if !target_dir.exists() {
+            return Ok(format!("target dir ({target_dir:?} does not exist!)"));
+        }
+        if target_dir.join(repo).exists() {
+            return Ok(format!("already exists dir ({repo})!"));
+        }
+
+        let output = command.output()?;
+
+        let text = output.stdout;
+        str::from_utf8(&text)?.to_string()
+    };
+    Ok(text)
 }
-
