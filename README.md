@@ -4,6 +4,14 @@ Playing around with prototype to work with monorepo in Rust.
 ## Client
 CLI/TUI to interact with monorepo and server.
 
+#### Run
+```sh
+# Clone this repo from monorepo-example
+cargo run --bin monorust-client -- checkout --module "module1" --target-dir "./target"
+# Remove cloned dir
+cargo run --bin monorust-client -- clean --target-dir "./target"
+```
+
 ## Server
 Example build/deploy server.
 

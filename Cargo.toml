@@ -8,6 +8,5 @@ members = [
 [workspace.dependencies]
 anyhow = "1.0.75"
 crossterm = "0.27.0"
-git2 = "0.18.1"
 ratatui = "0.24.0"
 clap = { version = "4.4.8", features = ["derive"] }

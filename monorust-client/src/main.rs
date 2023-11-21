@@ -2,14 +2,15 @@ use crossterm::{
     event::{
         self,
         Event::Key,
-        KeyCode::Char,
+        KeyCode::Char, KeyModifiers,
     },
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
 use ratatui::{prelude::*, widgets::*};
-use clap::Parser;
-use std::{io::stdout, fmt::Display, thread, time::Duration, path::PathBuf};
+use clap::{Parser, Subcommand};
+use anyhow::Result;
+use std::{io::stdout, fmt::Display, path::PathBuf, f32::consts::E};
 
 mod git;
 
@@ -37,76 +38,142 @@ struct App {
 /// Working with monorepo
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-    struct Args {
-    /// Name of the person to greet
-    #[arg(short, long)]
-    name: String,
+struct Args {
+    #[command(subcommand)]
+    command: Commands,
 
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
+    /// Shows all commands that would be run but does nothing
+    #[arg(long, default_value_t = false )]
+    dry_run: bool,
 }
 
-fn main() -> anyhow::Result<()> {
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Starts in interactive (wizard) mode
+    Interactive,
+    /// Checksout code to start working on
+    Checkout {
+        /// Module to work on
+        #[arg(short, long)]
+        module: String,
+
+        /// Dir to clone code to
+        #[arg(short, long)]
+        target_dir: PathBuf,
+    },
+    /// Trigger compilation of code
+    Build {
+        /// Module to build
+        #[arg(short, long)]
+        module: String,
+
+        /// Environment to build
+        #[arg(short, long)]
+        environment: String,
+    },
+    /// Trigger deploy of compiled package
+    Deploy {
+        /// Module to deploy
+        #[arg(short, long)]
+        module: String,
+
+        /// Environment to deploy to
+        #[arg(short, long)]
+        environment: String,
+    },
+    /// Removes files
+    Clean {
+        /// Dir to clean
+        #[arg(short, long)]
+        target_dir: PathBuf,
+    }
+}
+
+fn main() -> Result<()> {
     let args = Args::parse();
+    println!("{args:?}");
 
-    let x = git::clone(&PathBuf::from("/Users/mork/ws/rust/monorust/target"), "module1")?;
-    println!("response: {x}");
+    match args.command {
+        Commands::Interactive => { println!("Starting interactive mode...") },
+        Commands::Checkout { module, target_dir } => {
+            match git::checkout(&target_dir, &module) {
+                Ok(text) => println!("Response: {text}"),
+                Err(e) => eprintln!("Error: {e}"),
+            };
+            return Ok(());
+        },
+        Commands::Build { module: _, environment: _ } => todo!(),
+        Commands::Deploy { module: _, environment: _ } => todo!(),
+        Commands::Clean { target_dir } => {
+            let dir_to_remove = target_dir.join("monorust");
+            if dir_to_remove.exists() {
+                println!("Removing {dir_to_remove:?}...");
+                match std::fs::remove_dir_all(dir_to_remove) {
+                    Ok(_) => println!("Everything removed!"),
+                    Err(e) => eprintln!("Error removing files: {e}"),
+                }
+            }
+            else {
+                println!("Nothing to remove...");
+            }
+            return Ok(());
+        },
+    }
 
-//     thread::sleep(Duration::from_secs(3));
+    // Running interactive mode...
+    enable_raw_mode()?;
+    stdout().execute(EnterAlternateScreen)?;
+    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+    let mut app = App {
+        text: "Hello World!".into(),
+        current_page: Page::Init,
+        should_quit: false,
+    };
 
-//     enable_raw_mode()?;
-//     stdout().execute(EnterAlternateScreen)?;
-//     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-//     let mut app = App {
-//         text: "Hello World!".into(),
-//         current_page: Page::Init,
-//         should_quit: false,
-//     };
+    loop {
+        // draw
+        terminal.draw(|f| {
+            ui(&app, f);
+        })?;
 
-//     loop {
-//         // draw
-//         terminal.draw(|f| {
-//             ui(&app, f);
-//         })?;
+        // update state
+        update(&mut app)?;
 
-//         // update state
-//         update(&mut app)?;
+        // take action
+        if app.should_quit {
+            break;
+        }
+    }
 
-//         // take action
-//         if app.should_quit {
-//             break;
-//         }
-//     }
-
-//     disable_raw_mode()?;
-//     stdout().execute(LeaveAlternateScreen)?;
+    disable_raw_mode()?;
+    stdout().execute(LeaveAlternateScreen)?;
+    println!("Ok, bye!");
     Ok(())
 }
 
-// fn update(app: &mut App) -> anyhow::Result<()> {
-//     if event::poll(std::time::Duration::from_millis(50))? {
-//         if let Key(key) = event::read()? {
-//             if key.kind == event::KeyEventKind::Press {
-//                 match key.code {
-//                     Char('q') => app.should_quit = true,
-//                     Char('e') => {
-//                         let test = git::clone(&PathBuf::from("/Users/mork/ws/rust/monorust/target"), "module1")?;
-//                         app.text = test;
-//                     },
-//                     Char(_c) => app.current_page = Page::Hello,
-//                     _ => {}
-//                 }
-//             }
-//         }
-//     }
-//     Ok(())
-// }
+fn update(app: &mut App) -> anyhow::Result<()> {
+    if event::poll(std::time::Duration::from_millis(50))? {
+        if let Key(key) = event::read()? {
+            app.text = format!("{key:?}");
+            if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == Char('C') {
+                app.should_quit = true;
+            }
+            else if key.kind == event::KeyEventKind::Press {
+                match key.code {
+                    Char('q') => app.should_quit = true,
+                    Char(_c) => app.current_page = Page::Hello,
+                    _ => {},
+                }
+            }
+        }
+    }
+    Ok(())
+}
 
-// fn ui(app: &App, f: &mut Frame<'_>) {
-//     f.render_widget(
-//         Paragraph::new(format!("Text: {}", app.text))
-//             .block(Block::default().title(app.current_page.to_string()).borders(Borders::ALL)),
-//         f.size(),
-//     );
-// }
+fn ui(app: &App, f: &mut Frame<'_>) {
+    f.render_widget(
+        Paragraph::new(format!("Text: {}", app.text))
+            .block(Block::default().title(app.current_page.to_string()).borders(Borders::ALL)),
+        f.size(),
+    );
+}

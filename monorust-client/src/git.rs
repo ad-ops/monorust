@@ -3,13 +3,12 @@ use std::process::Command;
 use std::str;
 use anyhow::Result;
 
-
 /// - Sanity check
 /// - git clone --filter=blob:none --no-checkout https://github.com/ad-ops/monorust
 /// - cd monorust
 /// - git sparse-checkout init --cone
 /// - git sparse-checkout set monorepo-example/module1
-pub fn clone(target_dir: &PathBuf, module_name: &str) -> Result<String> {
+pub fn checkout(target_dir: &PathBuf, module_name: &str) -> Result<String> {
     let git_org = "https://github.com/ad-ops";
     let repo = "monorust";
     if !target_dir.exists() {
