@@ -6,6 +6,7 @@ use clap::{Parser, Subcommand};
 
 mod git;
 mod interactive;
+mod server;
 
 /// Working with monorepo
 #[derive(Parser, Debug)]

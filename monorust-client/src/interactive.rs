@@ -6,6 +6,7 @@ use crossterm::{
 use ratatui::{prelude::*, widgets::*};
 use std::{io::stdout, fmt::Display};
 use anyhow::Result;
+use crate::server;
 
 enum Page {
     Init,
@@ -33,7 +34,7 @@ pub fn run_interactive() -> Result<()> {
     stdout().execute(EnterAlternateScreen)?;
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     let mut app = App {
-        text: "Hello World!".into(),
+        text: "placeholder".into(),
         current_page: Page::Init,
         should_quit: false,
     };
@@ -62,12 +63,13 @@ pub fn run_interactive() -> Result<()> {
 fn update(app: &mut App) -> anyhow::Result<()> {
     if event::poll(std::time::Duration::from_millis(50))? {
         if let Key(key) = event::read()? {
-            app.text = format!("{key:?}");
+            // app.text = format!("{key:?}");
             if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == Char('c') {
                 app.should_quit = true;
             } else if key.kind == event::KeyEventKind::Press {
                 match key.code {
                     Char('q') => app.should_quit = true,
+                    Char('r') => app.text = server::say_hello()?,
                     Char(_c) => app.current_page = Page::Hello,
                     _ => {}
                 }
@@ -79,11 +81,12 @@ fn update(app: &mut App) -> anyhow::Result<()> {
 
 fn ui(app: &App, f: &mut Frame<'_>) {
     f.render_widget(
-        Paragraph::new(format!("Text: {}", app.text)).block(
-            Block::default()
-                .title(app.current_page.to_string())
-                .borders(Borders::ALL),
-        ),
+        Paragraph::new(format!("Text: {}", app.text))
+            .block(
+                Block::default()
+                    .title(app.current_page.to_string())
+                    .borders(Borders::ALL),
+            ),
         f.size(),
     );
 }

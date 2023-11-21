@@ -10,3 +10,6 @@ anyhow.workspace = true
 crossterm.workspace = true
 ratatui.workspace = true
 clap.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
