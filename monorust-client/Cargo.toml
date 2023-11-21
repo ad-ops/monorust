@@ -1,0 +1,13 @@
+[package]
+name = "monorust-client"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow.workspace = true
+crossterm.workspace = true
+git2.workspace = true
+ratatui.workspace = true
+clap.workspace = true
