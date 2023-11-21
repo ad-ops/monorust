@@ -8,7 +8,10 @@ use crossterm::{
     ExecutableCommand,
 };
 use ratatui::{prelude::*, widgets::*};
-use std::{io::stdout, fmt::Display};
+use clap::Parser;
+use std::{io::stdout, fmt::Display, thread, time::Duration, path::PathBuf};
+
+mod git;
 
 enum Page {
     Init,
@@ -26,58 +29,84 @@ impl Display for Page {
 }
 
 struct App {
+    text: String,
     current_page: Page,
     should_quit: bool,
 }
 
+/// Working with monorepo
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+    struct Args {
+    /// Name of the person to greet
+    #[arg(short, long)]
+    name: String,
+
+    /// Number of times to greet
+    #[arg(short, long, default_value_t = 1)]
+    count: u8,
+}
+
 fn main() -> anyhow::Result<()> {
-    enable_raw_mode()?;
-    stdout().execute(EnterAlternateScreen)?;
-    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-    let mut app = App {
-        current_page: Page::Init,
-        should_quit: false,
-    };
+    let args = Args::parse();
 
-    loop {
-        // draw
-        terminal.draw(|f| {
-            ui(&app, f);
-        })?;
+    let x = git::clone(&PathBuf::from("/Users/mork/ws/rust/monorust/target"), "module1")?;
+    println!("response: {x}");
 
-        // update state
-        update(&mut app)?;
+//     thread::sleep(Duration::from_secs(3));
 
-        // take action
-        if app.should_quit {
-            break;
-        }
-    }
+//     enable_raw_mode()?;
+//     stdout().execute(EnterAlternateScreen)?;
+//     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+//     let mut app = App {
+//         text: "Hello World!".into(),
+//         current_page: Page::Init,
+//         should_quit: false,
+//     };
 
-    disable_raw_mode()?;
-    stdout().execute(LeaveAlternateScreen)?;
+//     loop {
+//         // draw
+//         terminal.draw(|f| {
+//             ui(&app, f);
+//         })?;
+
+//         // update state
+//         update(&mut app)?;
+
+//         // take action
+//         if app.should_quit {
+//             break;
+//         }
+//     }
+
+//     disable_raw_mode()?;
+//     stdout().execute(LeaveAlternateScreen)?;
     Ok(())
 }
 
-fn update(app: &mut App) -> anyhow::Result<()> {
-    if event::poll(std::time::Duration::from_millis(50))? {
-        if let Key(key) = event::read()? {
-            if key.kind == event::KeyEventKind::Press {
-                match key.code {
-                    Char('q') => app.should_quit = true,
-                    Char(_c) => app.current_page = Page::Hello,
-                    _ => {}
-                }
-            }
-        }
-    }
-    Ok(())
-}
+// fn update(app: &mut App) -> anyhow::Result<()> {
+//     if event::poll(std::time::Duration::from_millis(50))? {
+//         if let Key(key) = event::read()? {
+//             if key.kind == event::KeyEventKind::Press {
+//                 match key.code {
+//                     Char('q') => app.should_quit = true,
+//                     Char('e') => {
+//                         let test = git::clone(&PathBuf::from("/Users/mork/ws/rust/monorust/target"), "module1")?;
+//                         app.text = test;
+//                     },
+//                     Char(_c) => app.current_page = Page::Hello,
+//                     _ => {}
+//                 }
+//             }
+//         }
+//     }
+//     Ok(())
+// }
 
-fn ui(app: &App, f: &mut Frame<'_>) {
-    f.render_widget(
-        Paragraph::new(format!("Text: {}", "Hello World!"))
-            .block(Block::default().title(app.current_page.to_string()).borders(Borders::ALL)),
-        f.size(),
-    );
-}
+// fn ui(app: &App, f: &mut Frame<'_>) {
+//     f.render_widget(
+//         Paragraph::new(format!("Text: {}", app.text))
+//             .block(Block::default().title(app.current_page.to_string()).borders(Borders::ALL)),
+//         f.size(),
+//     );
+// }
