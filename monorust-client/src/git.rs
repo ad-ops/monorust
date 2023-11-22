@@ -3,9 +3,14 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::str;
 
+use crate::server::checkout_code;
+
 pub fn checkout(target_dir: &PathBuf, module_name: &str, dry_run: bool) -> Result<String> {
     let git_org = "https://github.com/ad-ops";
     let repo = "monorust";
+
+    let checkout_result = checkout_code("test_user", module_name, "fake_env");
+    println!("Checked out code response: {checkout_result:?}");
 
     let args = vec![
         format!("git clone --filter=blob:none --no-checkout {git_org}/{repo}"),

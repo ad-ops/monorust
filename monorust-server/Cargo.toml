@@ -10,3 +10,7 @@ tokio.workspace = true
 axum.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sqlx.workspace = true
+anyhow.workspace = true
+
+monorust-models = { path = "../monorust-models" }
