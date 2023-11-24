@@ -23,7 +23,15 @@ struct Args {
 #[derive(Subcommand, Debug)]
 enum Commands {
     /// Starts in interactive (wizard) mode
-    Interactive,
+    Interactive {
+        /// Module to work on
+        #[arg(short, long)]
+        module: Option<String>,
+
+        /// Dir to clone code to
+        #[arg(short, long)]
+        target_dir: Option<PathBuf>,
+    },
     /// Checksout code to start working on
     Checkout {
         /// Module to work on
@@ -67,12 +75,12 @@ fn main() -> Result<()> {
     println!("{args:?}");
 
     match args.command {
-        Commands::Interactive => {
+        Commands::Interactive { module, target_dir } => {
             if args.dry_run {
-                println!("Running interactive mode...");
+                println!("Running interactive mode with module: {module:?}, target_dir: {target_dir:?}...");
             }
             else {
-                interactive::run_interactive()?;
+                interactive::run_interactive(module, target_dir)?;
             }
         }
         Commands::Checkout { module, target_dir } => {

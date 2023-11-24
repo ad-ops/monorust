@@ -37,6 +37,26 @@ struct Checkout {
     user: String,
 }
 
+async fn get_checkouts(State(pool): State<Pool<Sqlite>>, Json(payload): Json<CheckoutCodeRequest>) -> impl IntoResponse {
+    let pool = pool.clone();
+    
+    let _ = sqlx::query("INSERT INTO checkouts (module, environment, user) VALUES (?1, ?2, ?3)")
+        .bind(payload.module)
+        .bind(payload.env)
+        .bind(payload.user)
+        .execute(&pool)
+        .await
+        .unwrap();
+
+    let checkouts: Vec<Checkout> = sqlx::query_as("SELECT id, module, environment, user FROM checkouts")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+
+    println!("Db has stuff: {}", checkouts.len());
+    format!("db stuff {}", checkouts.len())
+}
+
 async fn checkout_code(State(pool): State<Pool<Sqlite>>, Json(payload): Json<CheckoutCodeRequest>) -> impl IntoResponse {
     let pool = pool.clone();
     
