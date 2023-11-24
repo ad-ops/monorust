@@ -2,11 +2,11 @@ use ratatui::text::Text;
 
 use super::App;
 
-pub mod help;
-pub mod configure;
-pub mod checkout;
 pub mod build;
+pub mod checkout;
+pub mod configure;
 pub mod deploy;
+pub mod help;
 pub mod list;
 
 pub fn page_output<'a>(app: &App) -> Text<'a> {

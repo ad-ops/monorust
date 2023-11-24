@@ -15,5 +15,6 @@ pub fn show<'a>() -> Text<'a> {
     2. *Change: Done outside this tool with normal git-commands
     3. Build: Create a compile package based on dependencies and run compilation
     4. Deploy: Deploy a built compilation package
-    "#.into()
+    "#
+    .into()
 }

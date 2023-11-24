@@ -1,14 +1,17 @@
 pub mod pages;
 
+use crate::server;
+use anyhow::Result;
 use crossterm::{
-    event::{self, Event::Key, KeyCode::Up, KeyCode::Down, KeyCode::Tab, KeyCode::Backspace, KeyCode::Char, KeyModifiers},
+    event::{
+        self, Event::Key, KeyCode::Backspace, KeyCode::Char, KeyCode::Down, KeyCode::Tab,
+        KeyCode::Up, KeyModifiers,
+    },
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
 use ratatui::{prelude::*, widgets::*};
-use std::{io::stdout, fmt::Display, path::PathBuf};
-use anyhow::Result;
-use crate::server;
+use std::{fmt::Display, io::stdout, path::PathBuf};
 
 enum Page {
     Help,
@@ -22,14 +25,7 @@ enum Page {
 impl Page {
     // Could be improved with strum-crate
     fn list_all() -> Vec<&'static str> {
-        vec![
-            "Help",
-            "Configure",
-            "Checkout",
-            "List",
-            "Build",
-            "Deploy",
-        ]
+        vec!["Help", "Configure", "Checkout", "List", "Build", "Deploy"]
     }
 
     fn previous_page(&self) -> Self {
@@ -108,8 +104,7 @@ impl App {
         }
     }
 
-    fn perform_checkout(&self) -> Result<String>{
-        
+    fn perform_checkout(&self) -> Result<String> {
         Ok("Checkout done!".to_string())
     }
 
@@ -130,9 +125,11 @@ pub fn run_interactive(module: Option<String>, target_dir: Option<PathBuf>) -> R
     enable_raw_mode()?;
     stdout().execute(EnterAlternateScreen)?;
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-    let mut app = App::new("myuser", 
-        &module.unwrap_or("module1".to_string()), 
-        target_dir.unwrap_or("target".into()));
+    let mut app = App::new(
+        "myuser",
+        &module.unwrap_or("module1".to_string()),
+        target_dir.unwrap_or("target".into()),
+    );
 
     loop {
         // draw
@@ -172,21 +169,18 @@ fn update(app: &mut App) -> anyhow::Result<()> {
                             // Char('r') => app.text = server::say_hello()?,
                             _ => {}
                         }
-
+                    }
+                    Pane::Output => match key.code {
+                        Tab => app.next_pane(),
+                        _ => {}
                     },
-                    Pane::Output => {
-                        match key.code {
-                            Tab => app.next_pane(),
-                            _ => {}
+                    Pane::Input => match key.code {
+                        Tab => app.next_pane(),
+                        Backspace => {
+                            let _ = app.text.pop();
                         }
-                    },
-                    Pane::Input => {
-                        match key.code {
-                            Tab => app.next_pane(),
-                            Backspace => {let _ = app.text.pop();},
-                            Char(c) => app.text.push(c),
-                            _ => {}
-                        }
+                        Char(c) => app.text.push(c),
+                        _ => {}
                     },
                 }
             }
@@ -211,8 +205,7 @@ fn ui(app: &App, f: &mut Frame<'_>) {
         .map(|o| {
             if o.to_string() == app.current_page.to_string() {
                 Line::from(format!("-> {o}").bold().yellow())
-            }
-            else {
+            } else {
                 Line::from(format!("   {o}").bold())
             }
         })
@@ -220,51 +213,45 @@ fn ui(app: &App, f: &mut Frame<'_>) {
 
     // Menu
     f.render_widget(
-        Paragraph::new(
-            Text::from(menu_options))
-            .block(Block::new()
+        Paragraph::new(Text::from(menu_options)).block(
+            Block::new()
                 .borders(Borders::ALL)
-                .border_style(
-                    match app.current_pane {
-                        Pane::Menu => Style::new().yellow(),
-                        _ => Style::new(),
-                    }
-                )
-                .title("Menu")
-            ),
+                .border_style(match app.current_pane {
+                    Pane::Menu => Style::new().yellow(),
+                    _ => Style::new(),
+                })
+                .title("Menu"),
+        ),
         layout[0],
     );
 
     // Output
     f.render_widget(
         Paragraph::new(pages::page_output(app))
-            .wrap( Wrap { trim: true } )
-            .block(Block::new()
-            .borders(Borders::ALL)
-            .border_style(
-                match app.current_pane {
-                    Pane::Output => Style::new().yellow(),
-                    _ => Style::new(),
-                }
-            )
-            .title(app.current_page.to_string())
-        ),
+            .wrap(Wrap { trim: true })
+            .block(
+                Block::new()
+                    .borders(Borders::ALL)
+                    .border_style(match app.current_pane {
+                        Pane::Output => Style::new().yellow(),
+                        _ => Style::new(),
+                    })
+                    .title(app.current_page.to_string()),
+            ),
         sub_layout[0],
     );
-    
+
     // Input
     f.render_widget(
-        Paragraph::new(format!("{}", app.text))
-            .block(Block::new()
+        Paragraph::new(format!("{}", app.text)).block(
+            Block::new()
                 .borders(Borders::ALL)
-                .border_style(
-                    match app.current_pane {
-                        Pane::Input => Style::new().yellow(),
-                        _ => Style::new(),
-                    }
-                )
-                .title("Input")
-            ),
+                .border_style(match app.current_pane {
+                    Pane::Input => Style::new().yellow(),
+                    _ => Style::new(),
+                })
+                .title("Input"),
+        ),
         sub_layout[1],
     );
 }

@@ -1,19 +1,17 @@
+use anyhow::Result;
 use axum::{
+    extract::{Json, State},
+    response::IntoResponse,
     routing::{get, post},
-    Router, response::IntoResponse,
-    extract::{Json, State}
+    Router,
 };
 use monorust_models::CheckoutCodeRequest;
-use sqlx::{Pool, Sqlite, prelude::FromRow};
-use anyhow::Result;
+use sqlx::{prelude::FromRow, Pool, Sqlite};
 
 #[tokio::main]
-async fn main() -> Result<()>{
-
+async fn main() -> Result<()> {
     let pool = sqlx::SqlitePool::connect("sqlite::memory:").await?;
-    sqlx::migrate!("../migrations")
-        .run(&pool)
-        .await?;
+    sqlx::migrate!("../migrations").run(&pool).await?;
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
@@ -37,9 +35,12 @@ struct Checkout {
     user: String,
 }
 
-async fn get_checkouts(State(pool): State<Pool<Sqlite>>, Json(payload): Json<CheckoutCodeRequest>) -> impl IntoResponse {
+async fn get_checkouts(
+    State(pool): State<Pool<Sqlite>>,
+    Json(payload): Json<CheckoutCodeRequest>,
+) -> impl IntoResponse {
     let pool = pool.clone();
-    
+
     let _ = sqlx::query("INSERT INTO checkouts (module, environment, user) VALUES (?1, ?2, ?3)")
         .bind(payload.module)
         .bind(payload.env)
@@ -48,18 +49,22 @@ async fn get_checkouts(State(pool): State<Pool<Sqlite>>, Json(payload): Json<Che
         .await
         .unwrap();
 
-    let checkouts: Vec<Checkout> = sqlx::query_as("SELECT id, module, environment, user FROM checkouts")
-        .fetch_all(&pool)
-        .await
-        .unwrap();
+    let checkouts: Vec<Checkout> =
+        sqlx::query_as("SELECT id, module, environment, user FROM checkouts")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
 
     println!("Db has stuff: {}", checkouts.len());
     format!("db stuff {}", checkouts.len())
 }
 
-async fn checkout_code(State(pool): State<Pool<Sqlite>>, Json(payload): Json<CheckoutCodeRequest>) -> impl IntoResponse {
+async fn checkout_code(
+    State(pool): State<Pool<Sqlite>>,
+    Json(payload): Json<CheckoutCodeRequest>,
+) -> impl IntoResponse {
     let pool = pool.clone();
-    
+
     let _ = sqlx::query("INSERT INTO checkouts (module, environment, user) VALUES (?1, ?2, ?3)")
         .bind(payload.module)
         .bind(payload.env)
@@ -68,10 +73,11 @@ async fn checkout_code(State(pool): State<Pool<Sqlite>>, Json(payload): Json<Che
         .await
         .unwrap();
 
-    let checkouts: Vec<Checkout> = sqlx::query_as("SELECT id, module, environment, user FROM checkouts")
-        .fetch_all(&pool)
-        .await
-        .unwrap();
+    let checkouts: Vec<Checkout> =
+        sqlx::query_as("SELECT id, module, environment, user FROM checkouts")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
 
     println!("Db has stuff: {}", checkouts.len());
     format!("db stuff {}", checkouts.len())

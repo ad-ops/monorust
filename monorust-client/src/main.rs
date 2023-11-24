@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
-
 mod git;
 mod interactive;
 mod server;
@@ -78,8 +77,7 @@ fn main() -> Result<()> {
         Commands::Interactive { module, target_dir } => {
             if args.dry_run {
                 println!("Running interactive mode with module: {module:?}, target_dir: {target_dir:?}...");
-            }
-            else {
+            } else {
                 interactive::run_interactive(module, target_dir)?;
             }
         }
@@ -119,4 +117,3 @@ fn main() -> Result<()> {
 
     Ok(())
 }
-
