@@ -1,69 +1,20 @@
 pub mod pages;
 
-use crate::server;
 use anyhow::Result;
 use crossterm::{
     event::{
-        self, Event::Key, KeyCode::Backspace, KeyCode::Char, KeyCode::Down, KeyCode::Tab,
-        KeyCode::Up, KeyModifiers,
+        self,
+        Event::Key,
+        KeyCode::{Backspace, Char, Down, Tab, Up},
+        KeyModifiers,
     },
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
 use ratatui::{prelude::*, widgets::*};
-use std::{fmt::Display, io::stdout, path::PathBuf};
+use std::{io::stdout, path::PathBuf};
 
-enum Page {
-    Help,
-    Configure,
-    Checkout,
-    List,
-    Build,
-    Deploy,
-}
-
-impl Page {
-    // Could be improved with strum-crate
-    fn list_all() -> Vec<&'static str> {
-        vec!["Help", "Configure", "Checkout", "List", "Build", "Deploy"]
-    }
-
-    fn previous_page(&self) -> Self {
-        match self {
-            Page::Help => Page::Help,
-            Page::Configure => Page::Help,
-            Page::Checkout => Page::Configure,
-            Page::List => Page::Checkout,
-            Page::Build => Page::List,
-            Page::Deploy => Page::Build,
-        }
-    }
-
-    fn next_page(&self) -> Self {
-        match self {
-            Page::Help => Page::Configure,
-            Page::Configure => Page::Checkout,
-            Page::Checkout => Page::List,
-            Page::List => Page::Build,
-            Page::Build => Page::Deploy,
-            Page::Deploy => Page::Deploy,
-        }
-    }
-}
-
-impl Display for Page {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let text = match self {
-            Page::Help => "Help",
-            Page::Configure => "Configure",
-            Page::Checkout => "Checkout",
-            Page::List => "List",
-            Page::Build => "Build",
-            Page::Deploy => "Deploy",
-        };
-        write!(f, "{text}")
-    }
-}
+use pages::Page;
 
 #[derive(PartialEq)]
 enum Pane {
@@ -82,7 +33,7 @@ impl Pane {
     }
 }
 
-struct App {
+pub struct App {
     text: String,
     current_page: Page,
     current_pane: Pane,
@@ -92,7 +43,7 @@ struct App {
     target_dir: PathBuf,
 }
 impl App {
-    fn new(user: &str, module: &str, target_dir: PathBuf) -> Self {
+    pub fn new(user: &str, module: &str, target_dir: PathBuf) -> Self {
         Self {
             text: String::new(),
             current_page: Page::Help,
@@ -104,19 +55,19 @@ impl App {
         }
     }
 
-    fn perform_checkout(&self) -> Result<String> {
+    pub fn perform_checkout(&self) -> Result<String> {
         Ok("Checkout done!".to_string())
     }
 
-    fn previous_page(&mut self) {
+    pub fn previous_page(&mut self) {
         self.current_page = self.current_page.previous_page()
     }
 
-    fn next_page(&mut self) {
+    pub fn next_page(&mut self) {
         self.current_page = self.current_page.next_page()
     }
 
-    fn next_pane(&mut self) {
+    pub fn next_pane(&mut self) {
         self.current_pane = self.current_pane.next_pane()
     }
 }

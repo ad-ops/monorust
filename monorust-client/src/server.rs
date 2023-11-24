@@ -1,12 +1,6 @@
 use anyhow::Result;
 use monorust_models::CheckoutCodeRequest;
 
-pub fn say_hello() -> Result<String> {
-    let body = reqwest::blocking::get("http://localhost:3000")?.text()?;
-
-    Ok(body)
-}
-
 pub fn checkout_code(user: &str, module: &str, env: &str) -> Result<String> {
     let client = reqwest::blocking::Client::new();
     let body = CheckoutCodeRequest {

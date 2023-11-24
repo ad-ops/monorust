@@ -4,6 +4,7 @@ use crate::interactive::App;
 
 pub fn show<'a>(app: &App) -> Text<'a> {
     let do_check = "check ok!";
+    let checkout = app.perform_checkout();
 
     format!(
         r#"
@@ -13,8 +14,10 @@ pub fn show<'a>(app: &App) -> Text<'a> {
     Module: {}
     Target Directory: {}
     Press ENTER to do checkout...
+
+    {:?}
     "#,
-        app.user, app.module
+        app.user, app.module, checkout
     )
     .into()
 }
