@@ -3,9 +3,8 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
-mod git;
 mod interactive;
-mod server;
+mod services;
 
 /// Working with monorepo
 #[derive(Parser, Debug)]
@@ -82,7 +81,7 @@ fn main() -> Result<()> {
             }
         }
         Commands::Checkout { module, target_dir } => {
-            match git::checkout(&target_dir, &module, args.dry_run) {
+            match services::git::checkout(&target_dir, &module, args.dry_run) {
                 Ok(text) => println!("Response: {text}"),
                 Err(e) => eprintln!("Error: {e}"),
             };

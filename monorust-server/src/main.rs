@@ -5,8 +5,8 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use monorust_models::CheckoutCodeRequest;
-use sqlx::{prelude::FromRow, Pool, Sqlite};
+use monorust_models::{Checkout, CheckoutCodeRequest};
+use sqlx::{Pool, Sqlite};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -15,7 +15,7 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .route("/checkout", post(checkout_code))
+        .route("/checkout", post(checkout_code).get(get_checkouts))
         .with_state(pool);
 
     println!("running on http://localhost:3000");
@@ -27,27 +27,8 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-#[derive(FromRow, Debug)]
-struct Checkout {
-    id: i64,
-    module: String,
-    environment: String,
-    user: String,
-}
-
-async fn get_checkouts(
-    State(pool): State<Pool<Sqlite>>,
-    Json(payload): Json<CheckoutCodeRequest>,
-) -> impl IntoResponse {
+async fn get_checkouts(State(pool): State<Pool<Sqlite>>) -> impl IntoResponse {
     let pool = pool.clone();
-
-    let _ = sqlx::query("INSERT INTO checkouts (module, environment, user) VALUES (?1, ?2, ?3)")
-        .bind(payload.module)
-        .bind(payload.env)
-        .bind(payload.user)
-        .execute(&pool)
-        .await
-        .unwrap();
 
     let checkouts: Vec<Checkout> =
         sqlx::query_as("SELECT id, module, environment, user FROM checkouts")
@@ -56,7 +37,7 @@ async fn get_checkouts(
             .unwrap();
 
     println!("Db has stuff: {}", checkouts.len());
-    format!("db stuff {}", checkouts.len())
+    Json(checkouts)
 }
 
 async fn checkout_code(

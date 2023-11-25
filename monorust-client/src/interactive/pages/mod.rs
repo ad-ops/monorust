@@ -6,6 +6,7 @@ use super::App;
 
 pub mod build;
 pub mod checkout;
+pub mod clean;
 pub mod configure;
 pub mod deploy;
 pub mod help;
