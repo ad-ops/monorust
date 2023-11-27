@@ -15,7 +15,7 @@ pub struct App {
     pub target_dir: PathBuf,
     pub checkout_message: Option<String>,
     pub checkout_list: Vec<Checkout>,
-    pub removed_dir_message: String,
+    pub cleaned_dir_message: String,
 }
 impl App {
     pub fn new(user: &str, module: &str, target_dir: PathBuf) -> Self {
@@ -28,7 +28,7 @@ impl App {
             target_dir,
             checkout_message: None,
             checkout_list: Vec::new(),
-            removed_dir_message: String::new(),
+            cleaned_dir_message: String::new(),
         }
     }
 
@@ -58,7 +58,7 @@ impl App {
     }
 
     pub fn clean_dir(&mut self) {
-        self.removed_dir_message = match fs::remove_dir_all(self.target_dir.join("monorust")) {
+        self.cleaned_dir_message = match fs::remove_dir_all(self.target_dir.join("monorust")) {
             Ok(_) => "Directory removed successfully".to_string(),
             Err(e) => format!("Error removing dir: {e}"),
         };

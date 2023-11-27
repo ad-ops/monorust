@@ -3,16 +3,15 @@ use ratatui::prelude::*;
 use crate::interactive::App;
 
 pub fn show<'a>(app: &App) -> Text<'a> {
-    let clean_message = "Delete everything under target dir? Press ENTER";
-
-    format!(
-        r#"
+    format!(r#"
     Target Directory
     {:?}
 
     {}
+
+    Delete everything under target dir? Press ENTER
     "#,
-        app.target_dir, clean_message
+        app.target_dir.join("monorust"), app.cleaned_dir_message
     )
     .into()
 }
