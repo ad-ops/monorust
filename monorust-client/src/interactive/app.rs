@@ -1,37 +1,34 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, fs};
 
 use monorust_models::Checkout;
 
 use crate::services::{git, server};
 
-use super::{
-    pages::{checkout, Page},
-    Pane,
-};
+use super::pages::Page;
 
 pub struct App {
     pub text: String,
     pub current_page: Page,
-    pub current_pane: Pane,
     pub should_quit: bool,
     pub user: String,
     pub module: String,
     pub target_dir: PathBuf,
     pub checkout_message: Option<String>,
     pub checkout_list: Vec<Checkout>,
+    pub removed_dir_message: String,
 }
 impl App {
     pub fn new(user: &str, module: &str, target_dir: PathBuf) -> Self {
         Self {
             text: String::new(),
             current_page: Page::Help,
-            current_pane: Pane::Menu,
             should_quit: false,
             user: user.to_string(),
             module: module.to_string(),
             target_dir,
             checkout_message: None,
             checkout_list: Vec::new(),
+            removed_dir_message: String::new(),
         }
     }
 
@@ -54,12 +51,17 @@ impl App {
     }
 
     pub fn list_checkouts(&mut self) {
-        let checkouts = match server::get_checkouts() {
+        self.checkout_list = match server::get_checkouts() {
             Ok(message) => message,
             Err(_e) => Vec::new(),
         };
+    }
 
-        self.checkout_list = checkouts;
+    pub fn clean_dir(&mut self) {
+        self.removed_dir_message = match fs::remove_dir_all(self.target_dir.join("monorust")) {
+            Ok(_) => "Directory removed successfully".to_string(),
+            Err(e) => format!("Error removing dir: {e}"),
+        };
     }
 
     pub fn previous_page(&mut self) {
@@ -68,9 +70,5 @@ impl App {
 
     pub fn next_page(&mut self) {
         self.current_page = self.current_page.next_page();
-    }
-
-    pub fn next_pane(&mut self) {
-        self.current_pane = self.current_pane.next_pane();
     }
 }

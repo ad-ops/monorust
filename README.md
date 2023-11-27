@@ -1,5 +1,7 @@
 # Monorust
-Playing around with prototype to work with monorepo in Rust.
+*Warning for messy code*
+
+Playing around with prototype to work with monorepo in Rust. It is more of look and feel prototype rather than solving complicated issues regarding dependencies and state.
 
 The idea is to use [sparse-checkout](https://github.blog/2020-01-17-bring-your-monorepo-down-to-size-with-sparse-checkout/) to reduce the number of files when cloning.
 

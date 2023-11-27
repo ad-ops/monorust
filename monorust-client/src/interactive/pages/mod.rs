@@ -19,12 +19,13 @@ pub enum Page {
     List,
     Build,
     Deploy,
+    Clean,
 }
 
 impl Page {
     // Could be improved with strum-crate
     pub fn list_all() -> Vec<&'static str> {
-        vec!["Help", "Configure", "Checkout", "List", "Build", "Deploy"]
+        vec!["Help", "Configure", "Checkout", "List", "Build", "Deploy", "Clean"]
     }
 
     pub fn previous_page(&self) -> Self {
@@ -35,6 +36,7 @@ impl Page {
             Page::List => Page::Checkout,
             Page::Build => Page::List,
             Page::Deploy => Page::Build,
+            Page::Clean => Page::Deploy,
         }
     }
 
@@ -45,7 +47,8 @@ impl Page {
             Page::Checkout => Page::List,
             Page::List => Page::Build,
             Page::Build => Page::Deploy,
-            Page::Deploy => Page::Deploy,
+            Page::Deploy => Page::Clean,
+            Page::Clean => Page::Clean,
         }
     }
 }
@@ -59,6 +62,7 @@ impl Display for Page {
             Page::List => "List",
             Page::Build => "Build",
             Page::Deploy => "Deploy",
+            Page::Clean => "Clean",
         };
         write!(f, "{text}")
     }
@@ -72,5 +76,6 @@ pub fn page_output<'a>(app: &App) -> Text<'a> {
         Page::List => list::show(app),
         Page::Build => build::show(app),
         Page::Deploy => deploy::show(app),
+        Page::Clean => clean::show(app),
     }
 }

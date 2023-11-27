@@ -16,23 +16,6 @@ use app::App;
 use events::update;
 use ui::ui;
 
-#[derive(PartialEq)]
-pub enum Pane {
-    Menu,
-    Output,
-    Input,
-}
-
-impl Pane {
-    pub fn next_pane(&self) -> Self {
-        match self {
-            Pane::Menu => Pane::Output,
-            Pane::Output => Pane::Input,
-            Pane::Input => Pane::Menu,
-        }
-    }
-}
-
 pub fn run_interactive(module: Option<String>, target_dir: Option<PathBuf>) -> Result<()> {
     enable_raw_mode()?;
     stdout().execute(EnterAlternateScreen)?;

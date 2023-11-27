@@ -3,7 +3,6 @@ use ratatui::{prelude::*, widgets::*};
 use super::{
     app::App,
     pages::{self, Page},
-    Pane,
 };
 
 pub fn ui(app: &App, f: &mut Frame<'_>) {
@@ -11,12 +10,9 @@ pub fn ui(app: &App, f: &mut Frame<'_>) {
         .direction(Direction::Horizontal)
         .constraints([Constraint::Min(15), Constraint::Percentage(90)])
         .split(f.size());
-    let sub_layout = Layout::default()
-        .direction(Direction::Vertical)
-        // TODO: How to make the second pane min 1?
-        .constraints([Constraint::Percentage(90), Constraint::Min(1)])
-        .split(layout[1]);
 
+    
+    // Menu
     let menu_options: Vec<Line> = Page::list_all()
         .iter()
         .map(|o| {
@@ -27,16 +23,10 @@ pub fn ui(app: &App, f: &mut Frame<'_>) {
             }
         })
         .collect();
-
-    // Menu
     f.render_widget(
         Paragraph::new(Text::from(menu_options)).block(
             Block::new()
                 .borders(Borders::ALL)
-                .border_style(match app.current_pane {
-                    Pane::Menu => Style::new().yellow(),
-                    _ => Style::new(),
-                })
                 .title("Menu"),
         ),
         layout[0],
@@ -50,26 +40,8 @@ pub fn ui(app: &App, f: &mut Frame<'_>) {
             .block(
                 Block::new()
                     .borders(Borders::ALL)
-                    .border_style(match app.current_pane {
-                        Pane::Output => Style::new().yellow(),
-                        _ => Style::new(),
-                    })
                     .title(app.current_page.to_string()),
             ),
-        sub_layout[0],
-    );
-
-    // Input
-    f.render_widget(
-        Paragraph::new(format!("{}", app.text)).block(
-            Block::new()
-                .borders(Borders::ALL)
-                .border_style(match app.current_pane {
-                    Pane::Input => Style::new().yellow(),
-                    _ => Style::new(),
-                })
-                .title("Input"),
-        ),
-        sub_layout[1],
+        layout[1],
     );
 }
