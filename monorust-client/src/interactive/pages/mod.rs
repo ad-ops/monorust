@@ -25,7 +25,15 @@ pub enum Page {
 impl Page {
     // Could be improved with strum-crate
     pub fn list_all() -> Vec<&'static str> {
-        vec!["Help", "Configure", "Checkout", "List", "Build", "Deploy", "Clean"]
+        vec![
+            "Help",
+            "Configure",
+            "Checkout",
+            "List",
+            "Build",
+            "Deploy",
+            "Clean",
+        ]
     }
 
     pub fn previous_page(&self) -> Self {

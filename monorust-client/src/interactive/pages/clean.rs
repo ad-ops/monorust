@@ -3,7 +3,8 @@ use ratatui::prelude::*;
 use crate::interactive::App;
 
 pub fn show<'a>(app: &App) -> Text<'a> {
-    format!(r#"
+    format!(
+        r#"
     Target Directory
     {:?}
 
@@ -11,7 +12,8 @@ pub fn show<'a>(app: &App) -> Text<'a> {
 
     Delete everything under target dir? Press ENTER
     "#,
-        app.target_dir.join("monorust"), app.cleaned_dir_message
+        app.target_dir.join("monorust"),
+        app.cleaned_dir_message
     )
     .into()
 }

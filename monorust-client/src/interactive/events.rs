@@ -13,8 +13,7 @@ pub fn update(app: &mut App) -> anyhow::Result<()> {
             app.text = format!("{key:?}");
             if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == Char('c') {
                 app.should_quit = true;
-            }
-            else if key.kind == event::KeyEventKind::Press {
+            } else if key.kind == event::KeyEventKind::Press {
                 match key.code {
                     Up => app.previous_page(),
                     Down => app.next_page(),

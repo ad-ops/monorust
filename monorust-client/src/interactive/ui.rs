@@ -11,7 +11,6 @@ pub fn ui(app: &App, f: &mut Frame<'_>) {
         .constraints([Constraint::Min(15), Constraint::Percentage(90)])
         .split(f.size());
 
-    
     // Menu
     let menu_options: Vec<Line> = Page::list_all()
         .iter()
@@ -24,11 +23,8 @@ pub fn ui(app: &App, f: &mut Frame<'_>) {
         })
         .collect();
     f.render_widget(
-        Paragraph::new(Text::from(menu_options)).block(
-            Block::new()
-                .borders(Borders::ALL)
-                .title("Menu"),
-        ),
+        Paragraph::new(Text::from(menu_options))
+            .block(Block::new().borders(Borders::ALL).title("Menu")),
         layout[0],
     );
 
