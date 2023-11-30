@@ -2,11 +2,16 @@
 linker = "clang"
 rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 
-[build]
+[target.aarch64-apple-darwin]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+# Nighlty options
+[nightly.build]
 rustflags = ["-Z", "threads=8"]
 
-[unstable]
+[nightly.target.x86_64-unknown-linux-gnu.unstable]
 codegen-backend = true
 
-[profile.dev]
+[nightly.target.x86_64-unknown-linux-gnu.profile.dev]
 codegen-backend = "cranelift"
