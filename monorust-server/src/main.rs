@@ -18,9 +18,10 @@ async fn main() -> Result<()> {
         .route("/checkout", post(checkout_code).get(get_checkouts))
         .with_state(pool);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
-    println!("running on http://localhost:3000");
-    axum::serve(listener, app.into_make_service());
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let port = listener.local_addr()?.port();
+    println!("running on http://localhost:{port}");
+    axum::serve(listener, app).await?;
 
     Ok(())
 }
