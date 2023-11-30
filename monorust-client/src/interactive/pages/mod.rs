@@ -77,7 +77,7 @@ impl Display for Page {
     }
 }
 
-pub fn page_output<'a>(app: &App) -> Text<'a> {
+pub fn page_output<'a>(app: &'a App) -> Text<'a> {
     match &app.current_page {
         Page::Help => help::show(),
         Page::Configure => configure::show(app),

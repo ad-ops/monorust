@@ -2,21 +2,24 @@ use ratatui::prelude::*;
 
 use crate::interactive::App;
 
-pub fn show<'a>(app: &App) -> Text<'a> {
-    format!(
-        r#"
-    User
-    {}
+pub fn show<'a>(app: &'a App) -> Text<'a> {
+    let help = vec![
+        "\n".into(),
+        "User".bold(),
+        app.user.clone().yellow(),
+        "\n".into(),
 
-    Module
-    {}
+        "Module".bold(),
+        app.module.clone().yellow(),
+        "\n".into(),
 
-    Target Directory
-    {}
-    "#,
-        app.user,
-        app.module,
-        app.target_dir.to_string_lossy()
-    )
-    .into()
+        "Target Directory".bold(),
+        app.target_dir.clone().to_string_lossy().to_string().yellow(),
+    ];
+
+    help
+        .into_iter()
+        .map(|span| Line::from(span))
+        .collect::<Vec<Line>>()
+        .into()
 }
