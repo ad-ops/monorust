@@ -1,10 +1,8 @@
+use monorust_models::Checkout;
 use ratatui::prelude::*;
 
-use crate::interactive::App;
-
-pub fn show<'a>(app: &App) -> Text<'a> {
-    let checkouts: String = app
-        .checkout_list
+pub fn show<'a>(checkouts: &Vec<Checkout>) -> Text<'a> {
+    let checkouts: String = checkouts
         .iter()
         .map(|checkout| format!("User: {}, Module: {}\n", checkout.user, checkout.module))
         .collect();

@@ -20,7 +20,7 @@ pub fn update(app: &mut App) -> anyhow::Result<()> {
                     Char('q') => app.should_quit = true,
                     Enter => match app.current_page {
                         super::pages::Page::Checkout => app.perform_checkout(),
-                        super::pages::Page::List => app.list_checkouts(),
+                        super::pages::Page::List(_) => app.list_checkouts(),
                         super::pages::Page::Clean => app.clean_dir(),
                         _ => (),
                     },

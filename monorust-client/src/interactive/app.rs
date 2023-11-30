@@ -51,10 +51,10 @@ impl App {
     }
 
     pub fn list_checkouts(&mut self) {
-        self.checkout_list = match server::get_checkouts() {
+        self.current_page = Page::List(match server::get_checkouts() {
             Ok(message) => message,
             Err(_e) => Vec::new(),
-        };
+        });
     }
 
     pub fn clean_dir(&mut self) {

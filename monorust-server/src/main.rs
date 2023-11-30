@@ -6,7 +6,7 @@ use axum::{
     Router,
 };
 use monorust_models::{Checkout, CheckoutCodeRequest};
-use sqlx::{Pool, Sqlite};
+use sqlx::{Pool, Sqlite, FromRow};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -18,25 +18,40 @@ async fn main() -> Result<()> {
         .route("/checkout", post(checkout_code).get(get_checkouts))
         .with_state(pool);
 
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
     println!("running on http://localhost:3000");
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    axum::serve(listener, app.into_make_service());
 
     Ok(())
+}
+
+#[derive(FromRow, Debug)]
+pub struct CheckoutData {
+    pub id: i64,
+    pub module: String,
+    pub environment: String,
+    pub user: String,
 }
 
 async fn get_checkouts(State(pool): State<Pool<Sqlite>>) -> impl IntoResponse {
     let pool = pool.clone();
 
-    let checkouts: Vec<Checkout> =
+    let checkouts: Vec<CheckoutData> =
         sqlx::query_as("SELECT id, module, environment, user FROM checkouts")
             .fetch_all(&pool)
             .await
             .unwrap();
 
     println!("Db has stuff: {}", checkouts.len());
+    let checkouts: Vec<Checkout> = checkouts
+        .into_iter()
+        .map(|data| Checkout { 
+            id: data.id,
+            module: data.module,
+            environment: data.environment,
+            user: data.user,
+        })
+        .collect();
     Json(checkouts)
 }
 
@@ -54,7 +69,7 @@ async fn checkout_code(
         .await
         .unwrap();
 
-    let checkouts: Vec<Checkout> =
+    let checkouts: Vec<CheckoutData> =
         sqlx::query_as("SELECT id, module, environment, user FROM checkouts")
             .fetch_all(&pool)
             .await

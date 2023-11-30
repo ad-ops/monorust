@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use monorust_models::Checkout;
 use ratatui::text::Text;
 
 use super::App;
@@ -16,7 +17,7 @@ pub enum Page {
     Help,
     Configure,
     Checkout,
-    List,
+    List(Vec<Checkout>),
     Build,
     Deploy,
     Clean,
@@ -41,8 +42,8 @@ impl Page {
             Page::Help => Page::Help,
             Page::Configure => Page::Help,
             Page::Checkout => Page::Configure,
-            Page::List => Page::Checkout,
-            Page::Build => Page::List,
+            Page::List(_) => Page::Checkout,
+            Page::Build => Page::List(Vec::new()),
             Page::Deploy => Page::Build,
             Page::Clean => Page::Deploy,
         }
@@ -52,8 +53,8 @@ impl Page {
         match self {
             Page::Help => Page::Configure,
             Page::Configure => Page::Checkout,
-            Page::Checkout => Page::List,
-            Page::List => Page::Build,
+            Page::Checkout => Page::List(Vec::new()),
+            Page::List(_) => Page::Build,
             Page::Build => Page::Deploy,
             Page::Deploy => Page::Clean,
             Page::Clean => Page::Clean,
@@ -67,7 +68,7 @@ impl Display for Page {
             Page::Help => "Help",
             Page::Configure => "Configure",
             Page::Checkout => "Checkout",
-            Page::List => "List",
+            Page::List(_) => "List",
             Page::Build => "Build",
             Page::Deploy => "Deploy",
             Page::Clean => "Clean",
@@ -77,11 +78,11 @@ impl Display for Page {
 }
 
 pub fn page_output<'a>(app: &App) -> Text<'a> {
-    match app.current_page {
+    match &app.current_page {
         Page::Help => help::show(),
         Page::Configure => configure::show(app),
         Page::Checkout => checkout::show(app),
-        Page::List => list::show(app),
+        Page::List(checkouts) => list::show(&checkouts),
         Page::Build => build::show(app),
         Page::Deploy => deploy::show(app),
         Page::Clean => clean::show(app),
