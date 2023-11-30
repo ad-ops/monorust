@@ -6,7 +6,7 @@ use axum::{
     Router,
 };
 use monorust_models::{Checkout, CheckoutCodeRequest};
-use sqlx::{Pool, Sqlite, FromRow};
+use sqlx::{FromRow, Pool, Sqlite};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -46,7 +46,7 @@ async fn get_checkouts(State(pool): State<Pool<Sqlite>>) -> impl IntoResponse {
     println!("Db has stuff: {}", checkouts.len());
     let checkouts: Vec<Checkout> = checkouts
         .into_iter()
-        .map(|data| Checkout { 
+        .map(|data| Checkout {
             id: data.id,
             module: data.module,
             environment: data.environment,
